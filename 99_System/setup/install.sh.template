@@ -1,0 +1,104 @@
+#!/usr/bin/env bash
+# install.sh.template
+# TEMPLATE PARAMETRIZZATO per il setup script cliente.
+# Il brain-builder agent sostituisce {{ PLACEHOLDER }} e salva come install-<slug>.sh
+#
+# Powered by Cervello di Ferro · matteo@cervellodiferro.com
+# Usage:  curl -fsSL <url> | bash
+
+set -euo pipefail
+
+CLIENT_NAME="{{ COMPANY_NAME }}"
+SLUG="{{ SLUG }}"
+REPO_URL="https://github.com/trillimatteob-blip/${SLUG}-cervello.git"
+VAULT_DIR="${HOME}/Documents/${SLUG}-cervello"
+
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "  🧠 Cervello di Ferro — Setup ${CLIENT_NAME}"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+
+# 1. Verifica macOS
+if [[ "$(uname)" != "Darwin" ]]; then
+  echo "⚠️  Questo script è per macOS."
+  echo "    Se sei su Windows/Linux, usa il prompt Claude Code descritto nel welcome pack."
+  exit 1
+fi
+
+# 2. Homebrew
+if ! command -v brew &>/dev/null; then
+  echo "📦 Installo Homebrew..."
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+else
+  echo "✓ Homebrew già installato"
+fi
+
+# 3-7. Tool dipendenze
+for tool in git gh node; do
+  if ! command -v $tool &>/dev/null; then
+    echo "📦 Installo $tool..."
+    brew install $tool
+  else
+    echo "✓ $tool già installato"
+  fi
+done
+
+# 6. Obsidian
+if [[ ! -d "/Applications/Obsidian.app" ]]; then
+  echo "📦 Installo Obsidian..."
+  brew install --cask obsidian
+else
+  echo "✓ Obsidian già installato"
+fi
+
+# 7. Claude Code
+if ! command -v claude &>/dev/null; then
+  echo "📦 Installo Claude Code..."
+  npm install -g @anthropic-ai/claude-code
+else
+  echo "✓ Claude Code già installato"
+fi
+
+# 8. Clona vault
+if [[ -d "${VAULT_DIR}" ]]; then
+  echo "⚠️  Cartella ${VAULT_DIR} esiste già. Skip clone."
+else
+  echo "📥 Clono vault da GitHub (privato — richiede login)..."
+  if ! gh auth status &>/dev/null; then
+    echo "🔐 Login GitHub necessario:"
+    gh auth login
+  fi
+  git clone "${REPO_URL}" "${VAULT_DIR}"
+fi
+
+cd "${VAULT_DIR}"
+
+# 9. .env template per MCP
+if [[ ! -f "${VAULT_DIR}/.env" ]]; then
+  cat > "${VAULT_DIR}/.env" <<'ENV_EOF'
+# Credenziali MCP per {{ COMPANY_NAME }}
+# Riempi questi valori con quelli ricevuti via 1Password.
+# NON committare questo file (è in .gitignore).
+
+{{ ENV_VARS }}
+ENV_EOF
+  echo "✓ Creato .env template (riempi credenziali da 1Password)"
+fi
+
+# 10. Riepilogo
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "  ✅ SETUP COMPLETATO"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+echo "📂 Vault:   ${VAULT_DIR}"
+echo "📄 Welcome: ${VAULT_DIR}/welcome-pack-${SLUG}.md"
+echo ""
+echo "PROSSIMI STEP (manuali):"
+echo "  1. Apri Obsidian:  open -a Obsidian \"${VAULT_DIR}\""
+echo "  2. Login Anthropic: cd \"${VAULT_DIR}\" && claude"
+echo "  3. Riempi .env con credenziali da 1Password"
+echo ""
+echo "Domande? matteo@cervellodiferro.com"
+echo ""

@@ -1,0 +1,30 @@
+# === Secrets (mai committare) ===
+.env
+.env.local
+.env.production
+*.key
+*.pem
+
+# === Cache & build ===
+node_modules/
+.next/
+.smart-env/
+.obsidian/cache/
+.obsidian/workspace*.json
+.obsidian/plugins/*/data.json
+.obsidian/snippets/
+
+# === System ===
+.DS_Store
+*.log
+__pycache__/
+*.pyc
+
+# === Backup ===
+*.backup*
+*BACKUP*
+*.tmp
+
+# NOTE: a differenza del template repo, questo è il repo CLIENTE.
+# welcome-pack, install script e .mcp.json (con placeholder env var)
+# DEVONO essere tracciati per il deliverable.

@@ -99,6 +99,19 @@ rm -rf .git
 git init -b main
 ```
 
+### STEP 1.5 — Sostituisci `.gitignore` template con versione cliente
+
+⚠️ Il `.gitignore` del template repo esclude `welcome-pack-*.md`, `install-*.sh` e `.mcp.json` perché in fase di SVILUPPO TEMPLATE non vogliamo questi artefatti tracciati. Ma nel REPO CLIENTE questi file **devono** essere versionati (sono il deliverable).
+
+```bash
+cp 99_System/setup/.gitignore-client.template .gitignore
+```
+
+Verifica con `cat .gitignore` — non deve più contenere:
+- `welcome-pack-*.md`
+- `99_System/setup/install-*.sh`
+- `.mcp.json`
+
 ### STEP 2 — Sostituzione placeholder
 
 In tutti i file `.md` del vault (escluso `30_Agents/library/` che ha già il template), sostituisci:
@@ -161,24 +174,56 @@ gh repo create trillimatteob-blip/<slug>-cervello \
   --private \
   --description "Vault Cervello di Ferro per <cliente>" \
   --source=. \
-  --remote=origin
+  --remote=origin \
+  --push
 ```
 
-Aggiungi all'admin del cliente come collaboratore se hanno username GitHub:
-```bash
-gh api repos/trillimatteob-blip/<slug>-cervello/collaborators/<username> \
-  --method PUT
-```
+#### Aggiungi admin cliente come collaborator (CONDIZIONALE)
+
+⚠️ **Verifica prima**: hai ricevuto il `github_username` dell'admin cliente nei parametri di input?
+
+- **Se SÌ** (parametro `github_username` presente):
+  ```bash
+  gh api repos/trillimatteob-blip/<slug>-cervello/collaborators/<github_username> \
+    --method PUT
+  ```
+
+- **Se NO**: NON tentare il comando (fallirebbe). Aggiungi alla TODO list manuale per Matteo nel riepilogo finale:
+  > ⏳ Chiedere a `<cliente>` lo username GitHub e poi eseguire:
+  > `gh api repos/trillimatteob-blip/<slug>-cervello/collaborators/<USERNAME> --method PUT`
+
+Mai inventare username. Mai chiedere all'utente in mezzo all'esecuzione — segnalalo solo nel riepilogo finale come TODO.
 
 ### STEP 8 — Genera setup script personalizzato
 
-Copia `cervello-di-ferro-template/99_System/setup/install.sh` (versione base) MA:
-- Sostituisci URL del template con URL del repo cliente specifico
-- Aggiunge step di clone del REPO CLIENTE (non più del template generico)
-- Salva come `99_System/setup/install-<slug>.sh`
+Esiste un template parametrizzato in `99_System/setup/install.sh.template` (NEL TEMPLATE REPO, non nel repo cliente — già copiato dallo step 1). Procedimento:
 
-Questo è lo script che il cliente eseguirà sul suo Mac. URL pubblico:
+```bash
+# Costruisci stringa env vars dai connettori MCP scelti
+# Es: per [calendar-google, google-drive, fathom] →
+#   "GCAL_CREDENTIALS=\nGDRIVE_CREDENTIALS_PATH=\nFATHOM_API_KEY="
+
+ENV_VARS=$(cat <<'VARS'
+[Una riga per ogni env var richiesta dai connettori scelti, con valore vuoto da riempire]
+VARS
+)
+
+# Sostituisci placeholder
+sed -e "s/{{ COMPANY_NAME }}/<cliente>/g" \
+    -e "s/{{ SLUG }}/<slug>/g" \
+    -e "s|{{ ENV_VARS }}|${ENV_VARS}|" \
+    99_System/setup/install.sh.template \
+    > 99_System/setup/install-<slug>.sh
+
+# Rendi eseguibile, rimuovi il template per non confondere
+chmod +x 99_System/setup/install-<slug>.sh
+rm 99_System/setup/install.sh.template
+```
+
+URL accessibile per il cliente (via raw.githubusercontent — funziona solo dopo che l'admin cliente è collaborator del repo privato):
 `https://raw.githubusercontent.com/trillimatteob-blip/<slug>-cervello/main/99_System/setup/install-<slug>.sh`
+
+Per repo privati, il cliente deve essere autenticato con `gh` su GitHub. In alternativa, mandagli lo script via email + 1Password share (più semplice per non-tecnici).
 
 ### STEP 9 — Genera Welcome Pack
 
@@ -357,5 +402,6 @@ Se il build fallisce a metà:
 | Versione | Data | Cambio |
 |---|---|---|
 | 1.0.0 | 28/04/2026 | Skill pronta per primo uso reale |
+| 1.1.0 | 28/04/2026 | Fix post test #1 (AM Coaching): step 1.5 sostituzione `.gitignore` cliente · step 7 condizionale collaborator · step 8 usa template parametrizzato `install.sh.template` (creato in `99_System/setup/`) |
 
 Quando aggiorni la skill, incrementa version + aggiorna `last-updated`.
