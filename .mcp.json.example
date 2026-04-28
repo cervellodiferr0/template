@@ -1,0 +1,13 @@
+{
+  "_comment": "Template MCP servers. Copia in .mcp.json e configura.",
+  "_docs": "https://docs.anthropic.com/en/docs/claude-code/mcp",
+  "mcpServers": {
+    "_fathom_example": {
+      "command": "npx",
+      "args": ["-y", "@yourorg/mcp-fathom"],
+      "env": {
+        "FATHOM_API_KEY": "${FATHOM_API_KEY}"
+      }
+    }
+  }
+}

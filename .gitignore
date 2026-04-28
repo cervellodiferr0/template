@@ -1,0 +1,27 @@
+# === Secrets ===
+.env
+.env.local
+.env.production
+*.key
+*.pem
+.mcp.json
+
+# === Cache & build ===
+node_modules/
+.next/
+.smart-env/
+.obsidian/cache/
+.obsidian/workspace*.json
+.obsidian/plugins/*/data.json
+.obsidian/snippets/
+
+# === System ===
+.DS_Store
+*.log
+__pycache__/
+*.pyc
+
+# === Backup ===
+*.backup*
+*BACKUP*
+*.tmp
