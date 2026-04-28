@@ -1,0 +1,144 @@
+# install-windows.ps1.template
+# Cervello di Ferro — Setup automatico per Windows 10/11
+# Funziona da PC VUOTO (richiede solo accesso amministratore).
+#
+# Uso (cliente in PowerShell come Admin):
+#   irm https://cervellodiferro.com/install/{{ SLUG }}/windows | iex
+
+param()
+$ErrorActionPreference = "Stop"
+
+# ─── PARAMETRI (sostituiti dal brain-builder) ───────────────────────
+$ClientName = "{{ COMPANY_NAME }}"
+$Slug = "{{ SLUG }}"
+$RepoUrl = "https://github.com/cervellodiferr0/$Slug-cervello.git"
+$VaultDir = "$env:USERPROFILE\Documents\$Slug-cervello"
+$EnvVarsTemplate = @"
+{{ ENV_VARS_TEMPLATE }}
+"@
+
+# ─── HELPERS ────────────────────────────────────────────────────────
+function Say  ($Msg) { Write-Host "`n[$Msg]" -ForegroundColor Cyan }
+function Ok   ($Msg) { Write-Host "  ✓ $Msg" -ForegroundColor Green }
+function Warn ($Msg) { Write-Host "  ⚠ $Msg" -ForegroundColor Yellow }
+function Err  ($Msg) { Write-Host "  ✗ $Msg" -ForegroundColor Red }
+
+function Test-Admin {
+    $current = [Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()
+    return $current.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+}
+
+# ─── 0. CHECK ENVIRONMENT ───────────────────────────────────────────
+Say "🧠 Cervello di Ferro — Setup $ClientName"
+
+if (-not (Test-Admin)) {
+    Err "Devi avviare PowerShell COME AMMINISTRATORE."
+    Write-Host "  → Tasto destro su PowerShell → 'Esegui come amministratore', poi rilancia il comando."
+    exit 1
+}
+
+# Abilita esecuzione script per la sessione
+Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
+
+# ─── 1. WINGET (Windows Package Manager — già presente Win11, su Win10 si installa) ─
+Say "1/7  Winget (Windows Package Manager)"
+if (Get-Command winget -ErrorAction SilentlyContinue) {
+    Ok "Winget v$(winget --version)"
+} else {
+    Warn "Winget non trovato (Windows 10 vecchio). Installo App Installer da Microsoft Store..."
+    Start-Process "ms-windows-store://pdp/?ProductId=9NBLGGH4NNS1"
+    Write-Host "  >> Installa 'App Installer' dallo Store, poi premi INVIO."
+    Read-Host
+}
+
+# ─── 2. TOOL CLI BASE ───────────────────────────────────────────────
+Say "2/7  Tool CLI (git, gh, node)"
+$tools = @(
+    @{Name="Git"; Id="Git.Git"; Cmd="git"},
+    @{Name="GitHub CLI"; Id="GitHub.cli"; Cmd="gh"},
+    @{Name="Node.js"; Id="OpenJS.NodeJS.LTS"; Cmd="node"}
+)
+foreach ($t in $tools) {
+    if (Get-Command $t.Cmd -ErrorAction SilentlyContinue) {
+        Ok "$($t.Name) già installato"
+    } else {
+        winget install --id $t.Id --silent --accept-package-agreements --accept-source-agreements 2>&1 | Out-Null
+        Ok "$($t.Name) installato"
+    }
+}
+
+# Refresh PATH per la sessione corrente
+$env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+
+# ─── 3. OBSIDIAN ────────────────────────────────────────────────────
+Say "3/7  Obsidian"
+if (Get-Command obsidian -ErrorAction SilentlyContinue) {
+    Ok "Già installato"
+} else {
+    winget install --id Obsidian.Obsidian --silent --accept-package-agreements --accept-source-agreements 2>&1 | Out-Null
+    Ok "Installato"
+}
+
+# ─── 4. CLAUDE CODE ─────────────────────────────────────────────────
+Say "4/7  Claude Code CLI"
+if (Get-Command claude -ErrorAction SilentlyContinue) {
+    Ok "Già installato"
+} else {
+    npm install -g "@anthropic-ai/claude-code" 2>&1 | Out-Null
+    Ok "Installato"
+}
+
+# ─── 5. AUTH GITHUB ─────────────────────────────────────────────────
+Say "5/7  Login GitHub"
+$ghStatus = gh auth status 2>&1
+if ($ghStatus -match "Logged in") {
+    Ok "Già loggato"
+} else {
+    Warn "Login richiesto. Si aprirà il browser..."
+    gh auth login --web --git-protocol https
+}
+
+# ─── 6. CLONA VAULT ─────────────────────────────────────────────────
+Say "6/7  Clono il vault"
+if (Test-Path $VaultDir) {
+    Warn "Vault già esistente in $VaultDir"
+    Ok "Skip clone — uso vault esistente"
+} else {
+    git clone $RepoUrl $VaultDir
+    Ok "Vault clonato in $VaultDir"
+}
+
+Set-Location $VaultDir
+
+# ─── 7. .env CREDENZIALI ────────────────────────────────────────────
+Say "7/7  File credenziali (.env)"
+$EnvFile = "$VaultDir\.env"
+if (-not (Test-Path $EnvFile)) {
+    $envContent = @"
+# Credenziali MCP per $ClientName
+# Riempi questi valori con quelli ricevuti via 1Password da Matteo.
+# NON committare questo file.
+
+# Path locale del vault (auto-rilevato)
+VAULT_PATH=$VaultDir
+
+$EnvVarsTemplate
+"@
+    Set-Content -Path $EnvFile -Value $envContent -Encoding UTF8
+    Ok "Creato $EnvFile"
+} else {
+    Ok ".env già esistente"
+}
+
+# ─── DONE ───────────────────────────────────────────────────────────
+Say "✅ SETUP COMPLETATO"
+Write-Host ""
+Write-Host "📂 Vault:      $VaultDir"
+Write-Host "📄 Welcome:    $VaultDir\welcome-pack-$Slug.md"
+Write-Host ""
+Write-Host "PROSSIMI 3 STEP:"
+Write-Host "  1. Apri Obsidian dal menu Start"
+Write-Host "  2. Riempi .env:      notepad `"$VaultDir\.env`""
+Write-Host "  3. Login Claude:     cd `"$VaultDir`"; claude"
+Write-Host ""
+Write-Host "Domande? matteo@cervellodiferro.com"

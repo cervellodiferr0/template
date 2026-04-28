@@ -403,5 +403,6 @@ Se il build fallisce a metà:
 |---|---|---|
 | 1.0.0 | 28/04/2026 | Skill pronta per primo uso reale |
 | 1.1.0 | 28/04/2026 | Fix post test #1 (AM Coaching): step 1.5 sostituzione `.gitignore` cliente · step 7 condizionale collaborator · step 8 usa template parametrizzato `install.sh.template` (creato in `99_System/setup/`) |
+| 1.2.0 | 28/04/2026 | **Production-readiness**: (1) MCP base set verificato su npm — solo pacchetti che esistono davvero (filesystem, memory, sequential-thinking, gdrive, google-calendar-mcp). Rimosso fathom-mcp (placeholder). (2) Workflow meeting universale via filesystem (no MCP necessario). (3) 3 installer cross-platform: install-macos.sh.template, install-windows.ps1.template, install-linux.sh.template. (4) Fallback "prompt-only" per non-tech: install-prompt-fallback.md.template. (5) Nuovo URL org: cervellodiferr0/ (ex cervello-di-ferro-template). (6) Chi paga cosa: cliente paga terze parti direttamente, CDF fattura solo servizio. |
 
 Quando aggiorni la skill, incrementa version + aggiorna `last-updated`.

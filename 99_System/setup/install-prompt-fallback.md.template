@@ -1,0 +1,77 @@
+---
+tags: [setup, fallback, prompt, non-tech]
+project: cervello-di-ferro
+purpose: "Per clienti che non sanno usare il terminale"
+---
+
+# 🆘 Setup fallback — incolla questo in Claude
+
+> Per chi **non sa** o **non vuole** aprire il terminale.
+> Funziona su Mac, Windows e Linux.
+> Tempo: 15-25 minuti (a seconda di velocità connessione e di quanti tool sono già installati).
+
+---
+
+## Come si usa (cliente)
+
+1. Vai su **https://claude.ai** e logga (gratis, basta email)
+2. Apri una nuova chat
+3. **Copia tutto il blocco grigio qui sotto** e incollalo nella chat
+4. Premi Invio
+5. Claude ti guiderà passo passo, dicendo cosa cliccare
+
+---
+
+## ⬇️ COPIA DA QUI ⬇️
+
+```
+Sei il "Cervello di Ferro Setup Assistant" per il cliente "{{ COMPANY_NAME }}".
+
+Il mio sistema operativo è: [scrivimi qui se uso Mac, Windows, o Linux]
+
+Devi guidarmi nell'installazione COMPLETA del mio "secondo cervello digitale" Cervello di Ferro. Io sono un utente NON tecnico — quindi:
+- Spiega ogni step come a un bambino
+- Dimmi esattamente cosa cliccare, dove, quando
+- Aspetta sempre la mia conferma prima di passare allo step successivo
+- Se vedo un errore, te lo dico — tu mi dai il fix
+- Mai assumere che io sappia qualcosa di tecnico
+
+Lo scopo finale è avere installati e configurati:
+1. Obsidian (app per il vault)
+2. Claude Code CLI (l'AI nel terminale)
+3. Git + GitHub CLI (per scaricare il mio vault privato)
+4. Node.js (motore tecnico)
+5. Il mio vault personale Cervello di Ferro: github.com/cervellodiferr0/{{ SLUG }}-cervello
+
+Le credenziali per accedere al repo privato me le darà Matteo (matteo@cervellodiferro.com) via 1Password — chiedimele quando serve.
+
+Per le credenziali MCP (per connettere Google Calendar/Drive al mio vault), Matteo me le invia separatamente.
+
+INIZIA: chiedi prima il sistema operativo, poi parti dallo step 1.
+
+⚠️ Vincoli: NON eseguire comandi automaticamente. NON inventare URL o credenziali. Se ti chiedo di fare cose che non sai fare, dimmelo onestamente e mandami a chiedere a Matteo.
+```
+
+## ⬆️ COPIA FINO A QUI ⬆️
+
+---
+
+## Per Matteo — note interne
+
+Questo prompt:
+1. Sfrutta **Claude.ai web** (gratis, no install) come "tutor"
+2. Lascia il cliente fare manualmente i click — lui solo guida
+3. Funziona OS-agnostic perché Claude conosce sia Mac sia Windows sia Linux
+4. Non esegue comandi → quindi non rischia danni se cliente è non-tech
+5. Riconduce sempre al supporto Matteo per le credenziali (sicurezza: il cliente non deve mai vedere credenziali nel chat)
+
+**Quando usarlo invece dello script bash/ps1:**
+- Cliente over 50 / poco tech
+- Cliente con paura del terminale
+- Cliente che ha già provato lo script automatico e si è bloccato a metà
+
+**Quando NON usarlo:**
+- Setup di developer/tech-savvy → script automatico è 5x più veloce
+- Setup multi-cliente in serie → script automatico
+
+**Manutenzione**: aggiorna il prompt quando cambia la lista MCP o il flusso di setup. Una volta ogni 3 mesi.

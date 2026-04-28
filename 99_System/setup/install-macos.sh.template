@@ -1,0 +1,152 @@
+#!/usr/bin/env bash
+# install-macos.sh.template
+# Cervello di Ferro — Setup automatico per macOS
+# Funziona da Mac VUOTO (anche solo con macOS appena installato).
+#
+# Uso (cliente incolla in Terminale):
+#   curl -fsSL https://cervellodiferro.com/install/{{ SLUG }}/macos | bash
+# (Il dominio reale ridirige al raw GitHub del cliente.)
+
+set -euo pipefail
+
+# ─── PARAMETRI (sostituiti dal brain-builder) ───────────────────────
+CLIENT_NAME="{{ COMPANY_NAME }}"
+SLUG="{{ SLUG }}"
+REPO_URL="https://github.com/cervellodiferr0/${SLUG}-cervello.git"
+VAULT_DIR="${HOME}/Documents/${SLUG}-cervello"
+ENV_VARS_TEMPLATE='{{ ENV_VARS_TEMPLATE }}'
+
+# ─── HELPERS ────────────────────────────────────────────────────────
+say() { printf "\n\033[1;36m%s\033[0m\n" "$1"; }
+ok()  { printf "  \033[0;32m✓\033[0m %s\n" "$1"; }
+warn(){ printf "  \033[0;33m⚠\033[0m %s\n" "$1"; }
+err() { printf "  \033[0;31m✗\033[0m %s\n" "$1"; }
+ask() { read -rp "  $1 [y/N] " ans; [[ "${ans,,}" == "y" ]]; }
+
+# ─── 0. CHECK ENVIRONMENT ───────────────────────────────────────────
+say "🧠 Cervello di Ferro — Setup ${CLIENT_NAME}"
+
+if [[ "$(uname)" != "Darwin" ]]; then
+  err "Questo script è per macOS. Sei su $(uname). Usa install-windows.ps1 o install-linux.sh."
+  exit 1
+fi
+
+# Trova architettura (Intel vs Apple Silicon) — Homebrew path differisce
+if [[ "$(uname -m)" == "arm64" ]]; then
+  BREW_PREFIX="/opt/homebrew"
+else
+  BREW_PREFIX="/usr/local"
+fi
+
+# Aggiungi brew al PATH se installato ma non in PATH (caso Mac vergine)
+export PATH="${BREW_PREFIX}/bin:$PATH"
+
+# ─── 1. XCODE COMMAND LINE TOOLS (necessari per brew) ───────────────
+say "1/8  Xcode Command Line Tools"
+if ! xcode-select -p &>/dev/null; then
+  warn "Non installati. Lancio installazione (apre dialog di sistema)..."
+  xcode-select --install
+  echo ""
+  echo "  >> Quando vedi 'The software was installed', premi INVIO qui per continuare."
+  read -r
+else
+  ok "Già installati"
+fi
+
+# ─── 2. HOMEBREW ────────────────────────────────────────────────────
+say "2/8  Homebrew"
+if ! command -v brew &>/dev/null; then
+  warn "Installo Homebrew (~3 min)..."
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  # Aggiunge brew al .zshrc per future sessioni
+  echo "eval \"\$(${BREW_PREFIX}/bin/brew shellenv)\"" >> "${HOME}/.zshrc"
+  eval "$(${BREW_PREFIX}/bin/brew shellenv)"
+else
+  ok "Homebrew $(brew --version | head -1 | awk '{print $2}')"
+fi
+
+# ─── 3. TOOL CLI BASE ───────────────────────────────────────────────
+say "3/8  Tool CLI (git, gh, node)"
+for tool in git gh node; do
+  if command -v $tool &>/dev/null; then
+    ok "$tool $(${tool} --version 2>&1 | head -1)"
+  else
+    brew install $tool >/dev/null 2>&1 && ok "$tool installato" || err "$tool fallito"
+  fi
+done
+
+# ─── 4. OBSIDIAN ────────────────────────────────────────────────────
+say "4/8  Obsidian"
+if [[ -d "/Applications/Obsidian.app" ]]; then
+  ok "Già installato"
+else
+  brew install --cask obsidian >/dev/null 2>&1 && ok "Installato" || err "Fallito"
+fi
+
+# ─── 5. CLAUDE CODE ─────────────────────────────────────────────────
+say "5/8  Claude Code CLI"
+if command -v claude &>/dev/null; then
+  ok "claude $(claude --version 2>&1 | head -1)"
+else
+  npm install -g @anthropic-ai/claude-code >/dev/null 2>&1 && ok "Installato" || err "Fallito"
+fi
+
+# ─── 6. AUTH GITHUB (necessario per repo privato) ───────────────────
+say "6/8  Login GitHub (per accedere al tuo repo privato)"
+if gh auth status &>/dev/null; then
+  ok "Già loggato come $(gh api user -q .login)"
+else
+  warn "Non sei loggato a GitHub. Lancio login interattivo..."
+  echo ""
+  echo "  >> Si aprirà il browser. Autorizza GitHub e torna qui."
+  echo ""
+  gh auth login --web --git-protocol https
+fi
+
+# ─── 7. CLONA VAULT ─────────────────────────────────────────────────
+say "7/8  Clono il tuo vault"
+if [[ -d "${VAULT_DIR}" ]]; then
+  warn "Esiste già ${VAULT_DIR}"
+  if ask "Vuoi fare backup e ri-clonare?"; then
+    mv "${VAULT_DIR}" "${VAULT_DIR}.backup.$(date +%Y%m%d-%H%M%S)"
+    git clone "${REPO_URL}" "${VAULT_DIR}" && ok "Vault clonato"
+  else
+    ok "Skip — uso vault esistente"
+  fi
+else
+  git clone "${REPO_URL}" "${VAULT_DIR}" && ok "Vault clonato"
+fi
+
+cd "${VAULT_DIR}"
+
+# ─── 8. .env DA CREDENZIALI ─────────────────────────────────────────
+say "8/8  File credenziali (.env)"
+if [[ ! -f "${VAULT_DIR}/.env" ]]; then
+  cat > "${VAULT_DIR}/.env" <<EOF
+# Credenziali MCP per ${CLIENT_NAME}
+# Riempi questi valori con quelli ricevuti via 1Password da Matteo.
+# NON committare questo file. È in .gitignore per sicurezza.
+
+# Path locale del vault (auto-rilevato — non toccare)
+VAULT_PATH=${VAULT_DIR}
+
+${ENV_VARS_TEMPLATE}
+EOF
+  ok "Creato .env in ${VAULT_DIR}/.env (riempi le credenziali)"
+else
+  ok ".env già esistente — non sovrascrivo"
+fi
+
+# ─── DONE ───────────────────────────────────────────────────────────
+say "✅ SETUP COMPLETATO"
+echo ""
+echo "📂 Vault:      ${VAULT_DIR}"
+echo "📄 Welcome:    ${VAULT_DIR}/welcome-pack-${SLUG}.md"
+echo ""
+echo "PROSSIMI 3 STEP:"
+echo "  1. Apri Obsidian:    open -a Obsidian \"${VAULT_DIR}\""
+echo "  2. Riempi .env:      open -t \"${VAULT_DIR}/.env\"  (credenziali da 1Password)"
+echo "  3. Login Claude:     cd \"${VAULT_DIR}\" && claude  (la prima volta apre browser)"
+echo ""
+echo "Domande? matteo@cervellodiferro.com"
+echo ""

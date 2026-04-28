@@ -1,0 +1,153 @@
+#!/usr/bin/env bash
+# install-linux.sh.template
+# Cervello di Ferro — Setup automatico per Linux (Ubuntu/Debian/Fedora/Arch)
+# Funziona da macchina VUOTA con accesso sudo.
+#
+# Uso (cliente in terminale):
+#   curl -fsSL https://cervellodiferro.com/install/{{ SLUG }}/linux | bash
+
+set -euo pipefail
+
+# ─── PARAMETRI ──────────────────────────────────────────────────────
+CLIENT_NAME="{{ COMPANY_NAME }}"
+SLUG="{{ SLUG }}"
+REPO_URL="https://github.com/cervellodiferr0/${SLUG}-cervello.git"
+VAULT_DIR="${HOME}/Documents/${SLUG}-cervello"
+ENV_VARS_TEMPLATE='{{ ENV_VARS_TEMPLATE }}'
+
+# ─── HELPERS ────────────────────────────────────────────────────────
+say() { printf "\n\033[1;36m%s\033[0m\n" "$1"; }
+ok()  { printf "  \033[0;32m✓\033[0m %s\n" "$1"; }
+warn(){ printf "  \033[0;33m⚠\033[0m %s\n" "$1"; }
+err() { printf "  \033[0;31m✗\033[0m %s\n" "$1"; }
+
+# ─── 0. CHECK ───────────────────────────────────────────────────────
+say "🧠 Cervello di Ferro — Setup ${CLIENT_NAME} (Linux)"
+
+# Detect distro
+if [[ -f /etc/os-release ]]; then
+  . /etc/os-release
+  DISTRO=$ID
+else
+  err "Non riesco a rilevare la distro. Esci e installa manualmente i tool."
+  exit 1
+fi
+
+case $DISTRO in
+  ubuntu|debian|pop|linuxmint) PKG="apt"; SUDO_INSTALL="sudo apt-get install -y" ;;
+  fedora|rhel|centos)          PKG="dnf"; SUDO_INSTALL="sudo dnf install -y" ;;
+  arch|manjaro)                PKG="pacman"; SUDO_INSTALL="sudo pacman -S --noconfirm" ;;
+  *) err "Distro non supportata: $DISTRO. Installa manualmente."; exit 1 ;;
+esac
+
+ok "Distro: $DISTRO ($PKG)"
+
+# ─── 1. AGGIORNA INDICE PACCHETTI ───────────────────────────────────
+say "1/7  Aggiorno indice pacchetti"
+case $PKG in
+  apt) sudo apt-get update -qq ;;
+  dnf) sudo dnf check-update -q || true ;;
+  pacman) sudo pacman -Sy --noconfirm ;;
+esac
+ok "Fatto"
+
+# ─── 2. TOOL CLI BASE ───────────────────────────────────────────────
+say "2/7  Tool CLI (git, curl, build-essential)"
+case $PKG in
+  apt) $SUDO_INSTALL git curl build-essential ;;
+  dnf) $SUDO_INSTALL git curl gcc gcc-c++ make ;;
+  pacman) $SUDO_INSTALL git curl base-devel ;;
+esac
+ok "Tool installati"
+
+# ─── 3. NODE.JS via NVM (cross-distro reliable) ─────────────────────
+say "3/7  Node.js via NVM"
+if ! command -v node &>/dev/null; then
+  curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+  export NVM_DIR="$HOME/.nvm"
+  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+  nvm install --lts
+  ok "Node $(node --version)"
+else
+  ok "Node $(node --version) già installato"
+fi
+
+# ─── 4. GitHub CLI ──────────────────────────────────────────────────
+say "4/7  GitHub CLI"
+if ! command -v gh &>/dev/null; then
+  case $PKG in
+    apt)
+      type -p curl >/dev/null || sudo apt install curl -y
+      curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+      sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
+      echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list >/dev/null
+      sudo apt update -qq
+      sudo apt install gh -y
+      ;;
+    dnf) sudo dnf install gh -y ;;
+    pacman) sudo pacman -S github-cli --noconfirm ;;
+  esac
+  ok "gh installato"
+else
+  ok "gh già installato"
+fi
+
+# ─── 5. OBSIDIAN ────────────────────────────────────────────────────
+say "5/7  Obsidian"
+if [[ -f /usr/bin/obsidian || -f /opt/Obsidian/obsidian || -f $HOME/.local/bin/obsidian ]]; then
+  ok "Già installato"
+else
+  warn "Scarico AppImage Obsidian..."
+  OBS_VERSION="1.7.7"
+  mkdir -p "$HOME/.local/bin"
+  curl -fsSL "https://github.com/obsidianmd/obsidian-releases/releases/download/v${OBS_VERSION}/Obsidian-${OBS_VERSION}.AppImage" -o "$HOME/.local/bin/obsidian"
+  chmod +x "$HOME/.local/bin/obsidian"
+  ok "Obsidian AppImage in ~/.local/bin/obsidian"
+fi
+
+# ─── 6. CLAUDE CODE ─────────────────────────────────────────────────
+say "6/7  Claude Code CLI"
+if ! command -v claude &>/dev/null; then
+  npm install -g @anthropic-ai/claude-code
+  ok "Installato"
+else
+  ok "Già installato"
+fi
+
+# ─── 7. CLONA VAULT + .env ──────────────────────────────────────────
+say "7/7  Login GitHub + clone vault"
+if ! gh auth status &>/dev/null; then
+  warn "Login GitHub..."
+  gh auth login --web --git-protocol https
+fi
+
+if [[ ! -d "${VAULT_DIR}" ]]; then
+  git clone "${REPO_URL}" "${VAULT_DIR}"
+  ok "Vault clonato"
+else
+  ok "Vault già esistente"
+fi
+
+cd "${VAULT_DIR}"
+
+if [[ ! -f "${VAULT_DIR}/.env" ]]; then
+  cat > "${VAULT_DIR}/.env" <<EOF
+# Credenziali MCP per ${CLIENT_NAME}
+VAULT_PATH=${VAULT_DIR}
+${ENV_VARS_TEMPLATE}
+EOF
+  ok "Creato .env"
+fi
+
+# ─── DONE ───────────────────────────────────────────────────────────
+say "✅ SETUP COMPLETATO"
+echo ""
+echo "📂 Vault:      ${VAULT_DIR}"
+echo "📄 Welcome:    ${VAULT_DIR}/welcome-pack-${SLUG}.md"
+echo ""
+echo "PROSSIMI 3 STEP:"
+echo "  1. Apri Obsidian:    obsidian \"${VAULT_DIR}\" &"
+echo "  2. Riempi .env:      \$EDITOR \"${VAULT_DIR}/.env\""
+echo "  3. Login Claude:     cd \"${VAULT_DIR}\" && claude"
+echo ""
+echo "Domande? matteo@cervellodiferro.com"
