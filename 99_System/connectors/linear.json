@@ -1,0 +1,15 @@
+{
+  "_name": "Linear MCP",
+  "_description": "Read/write issues, project tracking per startup tech.",
+  "_setup_required": [
+    "Cliente Linear Settings → API → Personal API Key",
+    "Salva in 1Password"
+  ],
+  "config": {
+    "command": "npx",
+    "args": ["-y", "@modelcontextprotocol/server-linear"],
+    "env": {
+      "LINEAR_API_KEY": "${LINEAR_API_KEY}"
+    }
+  }
+}

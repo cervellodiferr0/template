@@ -1,0 +1,17 @@
+{
+  "_name": "Google Drive MCP",
+  "_description": "Leggi documenti Drive del cliente. Cita fonti negli output.",
+  "_setup_required": [
+    "Cliente abilita Google Drive API",
+    "Crea OAuth client ID",
+    "Scarica credentials.json",
+    "Salva in 1Password"
+  ],
+  "config": {
+    "command": "npx",
+    "args": ["-y", "@modelcontextprotocol/server-gdrive"],
+    "env": {
+      "GDRIVE_CREDENTIALS_PATH": "${GDRIVE_CREDENTIALS_PATH}"
+    }
+  }
+}

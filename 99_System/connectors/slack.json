@@ -1,0 +1,18 @@
+{
+  "_name": "Slack MCP",
+  "_description": "Leggi/scrivi su canali Slack. Notifiche team automatiche.",
+  "_setup_required": [
+    "Crea Slack App su https://api.slack.com/apps",
+    "Aggiungi scopes: channels:read, chat:write, files:read",
+    "Installa nel workspace cliente",
+    "Salva Bot Token in 1Password"
+  ],
+  "config": {
+    "command": "npx",
+    "args": ["-y", "@modelcontextprotocol/server-slack"],
+    "env": {
+      "SLACK_BOT_TOKEN": "${SLACK_BOT_TOKEN}",
+      "SLACK_TEAM_ID": "${SLACK_TEAM_ID}"
+    }
+  }
+}

@@ -1,12 +1,21 @@
 {
-  "_comment": "Template MCP servers. Copia in .mcp.json e configura.",
+  "_comment": "Template MCP servers. Copia in .mcp.json (gitignored) e abilita solo i connettori scelti.",
   "_docs": "https://docs.anthropic.com/en/docs/claude-code/mcp",
+  "_credenziali": "Tutte le env var sono in 1Password Teams del cliente. Mai hardcoded qui.",
   "mcpServers": {
-    "_fathom_example": {
+    "_slack_example": {
       "command": "npx",
-      "args": ["-y", "@yourorg/mcp-fathom"],
+      "args": ["-y", "@modelcontextprotocol/server-slack"],
       "env": {
-        "FATHOM_API_KEY": "${FATHOM_API_KEY}"
+        "SLACK_BOT_TOKEN": "${SLACK_BOT_TOKEN}",
+        "SLACK_TEAM_ID": "${SLACK_TEAM_ID}"
+      }
+    },
+    "_drive_example": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-gdrive"],
+      "env": {
+        "GDRIVE_CREDENTIALS_PATH": "${GDRIVE_CREDENTIALS_PATH}"
       }
     }
   }

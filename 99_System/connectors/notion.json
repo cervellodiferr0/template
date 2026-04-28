@@ -1,0 +1,16 @@
+{
+  "_name": "Notion MCP",
+  "_description": "Sync bidirezionale con Notion del cliente. Migrazione + uso continuo.",
+  "_setup_required": [
+    "Cliente crea Internal Integration su https://notion.so/profile/integrations",
+    "Condividi pagine con la integration",
+    "Salva integration token in 1Password"
+  ],
+  "config": {
+    "command": "npx",
+    "args": ["-y", "@modelcontextprotocol/server-notion"],
+    "env": {
+      "NOTION_API_KEY": "${NOTION_API_KEY}"
+    }
+  }
+}

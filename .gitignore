@@ -25,3 +25,12 @@ __pycache__/
 *.backup*
 *BACKUP*
 *.tmp
+
+# === Cervello di Ferro client-specific ===
+# Welcome pack del cliente specifico (proprietary)
+welcome-pack-*.pdf
+welcome-pack-*.md
+# Custom skill aziendali (non riutilizzabili tra clienti)
+30_Agents/library/custom/
+# Setup script personalizzato per cliente specifico
+99_System/setup/install-*.sh

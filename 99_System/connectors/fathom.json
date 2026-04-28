@@ -1,0 +1,17 @@
+{
+  "_name": "Fathom MCP (custom)",
+  "_description": "Recupera meeting recordings + transcript da Fathom.video",
+  "_setup_required": [
+    "Cliente attiva Fathom Pro o Team",
+    "Genera API key da fathom.ai/settings/api",
+    "Salva in 1Password"
+  ],
+  "config": {
+    "command": "node",
+    "args": ["~/Documents/Ferro-Brain/99_System/antigravity/agents/fathom-mcp.js"],
+    "env": {
+      "FATHOM_API_KEY": "${FATHOM_API_KEY}"
+    }
+  },
+  "_note": "Custom MCP server. Codice: trillimatteob-blip/fathom-mcp (TBD)"
+}

@@ -1,0 +1,16 @@
+{
+  "_name": "Stripe MCP",
+  "_description": "Read pagamenti, invoice, subscriptions. Tracking ricavi.",
+  "_setup_required": [
+    "Cliente Stripe Dashboard → Developers → API Keys",
+    "Crea Restricted Key (read-only) per MCP",
+    "Salva in 1Password"
+  ],
+  "config": {
+    "command": "npx",
+    "args": ["-y", "@modelcontextprotocol/server-stripe"],
+    "env": {
+      "STRIPE_API_KEY": "${STRIPE_API_KEY}"
+    }
+  }
+}

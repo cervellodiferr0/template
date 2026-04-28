@@ -1,0 +1,16 @@
+{
+  "_name": "GitHub MCP",
+  "_description": "Read repos, PR, issues. Per clienti tech.",
+  "_setup_required": [
+    "Cliente crea Personal Access Token classic",
+    "Scopes: repo, read:org",
+    "Salva in 1Password"
+  ],
+  "config": {
+    "command": "npx",
+    "args": ["-y", "@modelcontextprotocol/server-github"],
+    "env": {
+      "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+    }
+  }
+}
