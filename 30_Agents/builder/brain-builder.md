@@ -248,6 +248,35 @@ URL accessibile per il cliente (via raw.githubusercontent — funziona solo dopo
 
 Per repo privati, il cliente deve essere autenticato con `gh` su GitHub. In alternativa, mandagli lo script via email + 1Password share (più semplice per non-tecnici).
 
+### STEP 8.5 — Genera procedura onboarding personalizzata
+
+Il template `99_System/setup/onboarding-cliente.md.template` è la procedura standard di onboarding (versione 1.0+, post-test Simo Pagno). Va personalizzata e salvata in DUE posti:
+
+1. Nel vault del cliente (per riferimento futuro): `99_System/setup/onboarding-{{ SLUG }}.md`
+2. Nella cartella locale `~/Documents/clienti/{{ SLUG }}/onboarding-da-mandare.md` (deliverable per Matteo)
+
+```bash
+SLA_RESPONSE="4h" # default enterprise; usa "8h" per professional, "next business day" per starter
+
+sed -e "s|{{ COMPANY_NAME }}|<cliente>|g" \
+    -e "s|{{ SLUG }}|<slug>|g" \
+    -e "s|{{ ADMIN_NAME }}|<admin-name>|g" \
+    -e "s|{{ CLIENT_OS }}|<windows|macos|linux>|g" \
+    -e "s|{{ SETUP_DATE }}|$(date +%Y-%m-%d)|g" \
+    -e "s|{{ FOUNDER_CONTACT }}|matteo@cervellodiferro.com|g" \
+    -e "s|{{ SLA_RESPONSE }}|${SLA_RESPONSE}|g" \
+    99_System/setup/onboarding-cliente.md.template \
+    > 99_System/setup/onboarding-<slug>.md
+
+cp 99_System/setup/onboarding-<slug>.md \
+   ~/Documents/clienti/<slug>/onboarding-da-mandare.md
+
+# Rimuovi il template dal vault cliente (non gli serve)
+rm 99_System/setup/onboarding-cliente.md.template
+```
+
+**Filosofia di questa procedura:** il cliente NON pre-configura credenziali, NON riceve file via 1Password. Si autentica solo a GitHub e Anthropic, e poi configura ogni MCP **guidato da Claude stesso** dentro il suo terminale (post-install). Massima semplicità per non-tecnici.
+
 ### STEP 9 — Genera Welcome Pack
 
 Crea `~/Documents/clienti/<slug>/welcome-pack-<slug>.md` (separato dal vault, è il deliverable finale):
@@ -427,5 +456,6 @@ Se il build fallisce a metà:
 | 1.0.0 | 28/04/2026 | Skill pronta per primo uso reale |
 | 1.1.0 | 28/04/2026 | Fix post test #1 (AM Coaching): step 1.5 sostituzione `.gitignore` cliente · step 7 condizionale collaborator · step 8 usa template parametrizzato `install.sh.template` (creato in `99_System/setup/`) |
 | 1.2.0 | 28/04/2026 | **Production-readiness**: (1) MCP base set verificato su npm — solo pacchetti che esistono davvero (filesystem, memory, sequential-thinking, gdrive, google-calendar-mcp). Rimosso fathom-mcp (placeholder). (2) Workflow meeting universale via filesystem (no MCP necessario). (3) 3 installer cross-platform: install-macos.sh.template, install-windows.ps1.template, install-linux.sh.template. (4) Fallback "prompt-only" per non-tech: install-prompt-fallback.md.template. (5) Nuovo URL org: cervellodiferr0/ (ex cervello-di-ferro-template). (6) Chi paga cosa: cliente paga terze parti direttamente, CDF fattura solo servizio. |
+| 1.3.0 | 29/04/2026 | **Onboarding cliente standardizzato** (post-test Simo Pagno): nuovo STEP 8.5 che genera procedura `onboarding-<slug>.md` da template `99_System/setup/onboarding-cliente.md.template`. Filosofia: cliente NON pre-configura credenziali, le imposta dopo l'install **guidato da Claude stesso**. 8 step lineari, copy-paste friendly, tre OS supportati. Massima semplicità per non-tecnici. |
 
 Quando aggiorni la skill, incrementa version + aggiorna `last-updated`.

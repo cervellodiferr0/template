@@ -1,0 +1,248 @@
+# Procedura Onboarding Cliente — Cervello di Ferro
+
+> Procedura standard per attivare un nuovo cliente sul suo vault.
+> Tempo totale stimato per il cliente: **15-20 minuti** (install) + **20-30 minuti** (config credenziali, opzionale anche dopo).
+>
+> Cliente: **{{ COMPANY_NAME }}** · Slug: `{{ SLUG }}` · OS: `{{ CLIENT_OS }}` · Setup: {{ SETUP_DATE }}
+
+---
+
+## 🎯 Filosofia
+
+Il cliente NON deve:
+- ❌ Pre-configurare credenziali prima dell'install
+- ❌ Ricevere file via 1Password (troppo complesso per non-tecnici)
+- ❌ Capire cosa è un MCP, un token, un'env var
+
+Il cliente DEVE solo:
+- ✅ Avere account GitHub + Anthropic
+- ✅ Saper aprire un terminale e copiare-incollare comandi
+- ✅ Seguire 8 step lineari
+- ✅ Configurare le credenziali DOPO l'install, **guidato da Claude stesso**
+
+---
+
+## 🛠 PARTE 1 — Quello che fa MATTEO prima di mandare niente
+
+### Step 1.A — Chiedi al cliente l'username GitHub
+
+Messaggio standard:
+
+> "Ciao {{ ADMIN_NAME }}, ti devo attivare il sistema. Prima cosa: hai un account GitHub? Se sì mandami l'username. Se no, vai su github.com, crea un account gratuito (5 minuti) e poi mandami l'username che hai scelto."
+
+**Aspetta la risposta.** Non procedere senza.
+
+### Step 1.B — Aggiungilo come collaboratore del repo
+
+Quando ricevi l'username (es. `mariorossi`):
+
+```bash
+gh api repos/cervellodiferr0/{{ SLUG }}-cervello/collaborators/MARIOROSSI --method PUT
+```
+
+GitHub gli manda automaticamente la mail di invito. **Digli di accettare l'invito** (link nella mail, o su github.com/notifications).
+
+### Step 1.C — Solo quando ha accettato l'invito, manda il messaggio della Parte 2
+
+⚠️ Senza questo passaggio, lo script di install fallisce al `git clone`.
+
+---
+
+## 📨 PARTE 2 — Messaggio da copiare-incollare al cliente
+
+Copia tutto tra le righe `═══════` e mandalo al cliente via WhatsApp/email.
+
+**Adatta** prima:
+- `{{ ADMIN_NAME }}` → nome cliente
+- `{{ SLUG }}` → slug del vault
+- `{{ CLIENT_OS }}` → `windows` / `macos` / `linux` → scegli i blocchi giusti sotto
+- Eventuali contatti / link
+
+═══════════════════════════════════════════════
+
+Ciao {{ ADMIN_NAME }}, ecco come ti attivi il sistema. È tutto automatico, basta seguire i passi nell'ordine. Se ti blocchi mandami uno screenshot.
+
+Tempo totale: **15 minuti**.
+
+---
+
+**STEP 1 — Apri il terminale come amministratore**
+
+> 🪟 **Windows** — Premi tasto Windows → scrivi `PowerShell` → click destro su "Windows PowerShell" → "Esegui come amministratore" → click "Sì" se chiede conferma.
+>
+> 🍎 **Mac** — Premi `Cmd+Spazio` → scrivi `Terminal` → premi Invio.
+>
+> 🐧 **Linux** — Apri il terminale dal menu (o `Ctrl+Alt+T`).
+
+Si aprirà una finestra con scritte. Quella è il terminale.
+
+---
+
+**STEP 2 — Sblocca l'esecuzione (solo Windows, solo prima volta)**
+
+> 🪟 **Windows** — Copia questa riga, incolla nel terminale (click destro = incolla), premi Invio:
+> ```
+> Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+> ```
+>
+> 🍎 🐧 **Mac/Linux** — Salta questo step.
+
+---
+
+**STEP 3 — Lancia l'installazione**
+
+Copia la riga corretta per il tuo sistema, incolla nel terminale, premi Invio.
+
+> 🪟 **Windows:**
+> ```
+> iwr -useb https://raw.githubusercontent.com/cervellodiferr0/{{ SLUG }}-cervello/main/99_System/setup/install-{{ SLUG }}-windows.ps1 | iex
+> ```
+>
+> 🍎 **Mac:**
+> ```
+> curl -fsSL https://raw.githubusercontent.com/cervellodiferr0/{{ SLUG }}-cervello/main/99_System/setup/install-{{ SLUG }}-macos.sh | bash
+> ```
+>
+> 🐧 **Linux:**
+> ```
+> curl -fsSL https://raw.githubusercontent.com/cervellodiferr0/{{ SLUG }}-cervello/main/99_System/setup/install-{{ SLUG }}-linux.sh | bash
+> ```
+
+Lo script comincerà a girare. Vedrai tante scritte che scorrono — è normale, sta installando: Git, Node.js, GitHub CLI, Obsidian, Claude Code, e il tuo vault.
+
+**Tempo: circa 8-10 minuti.** Lascia che faccia. Non chiudere il terminale.
+
+---
+
+**STEP 4 — Quando ti chiede di fare login a GitHub**
+
+A un certo punto lo script si ferma e dice qualcosa tipo:
+
+```
+? What account do you want to log into? GitHub.com
+? What is your preferred protocol for Git operations? HTTPS
+? Authenticate Git with your GitHub credentials? Yes
+? How would you like to authenticate? Login with a web browser
+```
+
+Premi **Invio** ogni volta che propone una scelta (sono già giuste di default).
+
+Poi ti mostra un **codice di 8 caratteri** (es: `A1B2-C3D4`) e dice:
+
+> "Press Enter to open github.com in your browser..."
+
+1. Annota il codice (o lascialo a schermo)
+2. Premi **Invio**
+3. Si apre il browser su GitHub
+4. Incolla il codice
+5. Click **Authorize**
+6. Torna al terminale e aspetta — finirà da solo
+
+---
+
+**STEP 5 — Installazione finita**
+
+Quando lo script ha finito vedrai un messaggio tipo:
+
+```
+✅ Setup completato!
+Vault installato in: <percorso completo>
+```
+
+Puoi chiudere il terminale.
+
+---
+
+**STEP 6 — Apri Claude Code per la prima volta**
+
+Apri di nuovo il terminale (questa volta **NON** serve come amministratore — basta normale) e copia/incolla:
+
+> 🪟 **Windows:**
+> ```
+> cd $env:USERPROFILE\Documents\{{ SLUG }}-cervello
+> claude
+> ```
+>
+> 🍎 🐧 **Mac/Linux:**
+> ```
+> cd ~/Documents/{{ SLUG }}-cervello
+> claude
+> ```
+
+Premi **Invio**. Claude Code si avvia. La prima volta chiede login con account Anthropic — segui le istruzioni a schermo (è browser-based, simile a GitHub).
+
+---
+
+**STEP 7 — Configura le credenziali (Claude ti guida)**
+
+Quando vedi il prompt di Claude (`>` lampeggiante), copia/incolla questo messaggio:
+
+```
+Ciao, sono {{ ADMIN_NAME }}. Aiutami a configurare i connettori MCP del mio vault.
+Guidami passo passo per ogni MCP attivo (li trovi nel mio .mcp.json).
+Per ognuno dimmi esattamente cosa devo fare, dove cliccare, dove andare.
+Non sono tecnico, spiegami come a un principiante.
+Quando ho la credenziale, la inseriamo nel file .env insieme.
+```
+
+Claude ti guiderà uno per uno. Dovrai:
+- Aprire alcuni siti (es. Google Cloud, Slack, GitHub, Fathom, ecc.)
+- Generare token / chiavi
+- Incollarli nel `.env`
+
+**Tempo: 20-30 minuti.** Se non ce la fai tutta in un colpo, fai i primi 2-3 e gli altri dopo.
+
+---
+
+**STEP 8 — Apri Obsidian per vedere il vault**
+
+1. Cerca **Obsidian** nel menu del tuo computer
+2. Apri Obsidian
+3. Click su **"Open folder as vault"**
+4. Naviga fino a `Documents` (o `Documenti`) → `{{ SLUG }}-cervello` → click **Seleziona cartella**
+
+Ora vedi tutto il tuo Cervello di Ferro come vault Obsidian. Puoi navigare, leggere note, lavorarci.
+
+---
+
+**Se qualcosa va storto:**
+
+Mandami uno screenshot dell'errore + a quale step sei (es: "STEP 4, errore qui").
+Ti rispondo entro {{ SLA_RESPONSE }}.
+
+A presto,
+Matteo
+{{ FOUNDER_CONTACT }}
+
+═══════════════════════════════════════════════
+
+---
+
+## 📋 Cosa il cliente NON deve sapere/fare
+
+- ❌ Non deve riempire il `.env` da solo prima dell'install — lo fa **dopo**, con Claude
+- ❌ Non deve scaricare niente manualmente — lo script fa tutto
+- ❌ Non deve copiare credenziali pre-fornite — le crea sul suo account, con Claude che spiega come
+
+## 📋 Cosa MATTEO deve monitorare
+
+1. **Confermare l'invito GitHub accettato** prima che il cliente lanci lo script
+2. Se chiede aiuto su una credenziale specifica → rispondi tempestivo (cliente in attesa = friction alta)
+3. Quando ha finito, verifica che `claude` risponda nel suo terminale + che il vault si apra in Obsidian
+4. Schedula la **kickoff call entro 5 giorni** per riempire i `TBD` nel `00_Meta/CLAUDE.md`
+
+---
+
+## 🐛 Troubleshooting comune
+
+| Sintomo | Causa probabile | Fix |
+|---|---|---|
+| `git clone` fallisce con 404 | Cliente non ha accettato invito GitHub | Manda link `github.com/notifications`, ricontrolla |
+| `gh: command not found` | Script interrotto prima di installare gh | Riavvia terminale, rilancia script |
+| `claude` si blocca al login | Pop-up browser bloccato | Disabilita ad-block, riprova |
+| `.env` non viene letto da Claude | File salvato come `.env.txt` | Su Windows: rinomina come `.env.` (con punto finale, Windows lo rimuove) |
+| MCP non si connette dopo `.env` | Variabile env non caricata | Riavvia il terminale, rilancia `claude` |
+
+---
+
+*Generato dal `brain-builder` per {{ COMPANY_NAME }} il {{ SETUP_DATE }}.*
