@@ -1,17 +1,24 @@
 {
-  "_name": "Fathom MCP (custom)",
-  "_description": "Recupera meeting recordings + transcript da Fathom.video",
+  "_name": "Fathom MCP",
+  "_description": "Recupera meeting recordings, transcript e action items da Fathom.video. Usato da meeting-summarizer per processare call automaticamente.",
   "_setup_required": [
-    "Cliente attiva Fathom Pro o Team",
-    "Genera API key da fathom.ai/settings/api",
-    "Salva in 1Password"
+    "1. Cliente attiva Fathom Pro o Team su fathom.video",
+    "2. Genera API key: fathom.video → Settings → API",
+    "3. Salva in 1Password del cliente come 'Fathom API Key'",
+    "4. Aggiungi FATHOM_API_KEY al .env del vault"
+  ],
+  "_what_it_unlocks": [
+    "Transcript automatici di ogni call",
+    "Action items estratti da meeting-summarizer",
+    "Log meeting salvati in 04_Knowledge/meetings/ senza intervento manuale"
   ],
   "config": {
-    "command": "node",
-    "args": ["~/Documents/Ferro-Brain/99_System/antigravity/agents/fathom-mcp.js"],
+    "command": "npx",
+    "args": ["-y", "@cervellodiferr0/fathom-mcp"],
     "env": {
       "FATHOM_API_KEY": "${FATHOM_API_KEY}"
     }
   },
-  "_note": "Custom MCP server. Codice: trillimatteob-blip/fathom-mcp (TBD)"
+  "_fallback": "Se il cliente non ha Fathom, usare meeting-summarizer in modalità manuale: incolla il transcript nella chat e chiedi 'summarize this meeting'.",
+  "_note": "Pacchetto npm: @cervellodiferr0/fathom-mcp (da pubblicare). Nel frattempo usare il fallback manuale."
 }

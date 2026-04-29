@@ -119,15 +119,38 @@ In tutti i file `.md` del vault (escluso `30_Agents/library/` che ha già il tem
 | Placeholder | Sostituzione |
 |---|---|
 | `{{ COMPANY_NAME }}` | nome cliente |
+| `{{ DOMAIN }}` | dominio (es. acme.it) |
 | `{{ VERTICAL }}` | vertical |
+| `{{ POSITIONING }}` | posizionamento in 1 riga |
+| `{{ COMPANY_STAGE }}` | pre-revenue / early / growth / scale |
 | `{{ TEAM_SIZE }}` | team size |
 | `{{ TIER }}` | tier |
 | `{{ TONE_OF_VOICE }}` | tono voce |
+| `{{ BRAND_WORDS }}` | parole chiave brand (es. "ferro, performance, risultati") |
+| `{{ FORBIDDEN_WORDS }}` | parole vietate (es. "sinergia, innovativo, olistico") |
+| `{{ TONE_EXAMPLES }}` | 2-3 frasi di esempio nel tono corretto |
 | `{{ ADMIN_NAME }}` | nome admin |
+| `{{ ADMIN_ROLE }}` | ruolo admin (es. CEO, COO) |
 | `{{ ADMIN_CONTACT }}` | email admin |
+| `{{ WHAT_WE_DO }}` | descrizione 2 righe cosa fa l'azienda |
+| `{{ ICP_DESCRIPTION }}` | chi è il cliente ideale |
+| `{{ DIFFERENTIATOR }}` | perché loro e non altri |
+| `{{ PRODUCT_1 }}` | nome prodotto/servizio principale |
+| `{{ PRICE_1 }}` | prezzo prodotto principale |
+| `{{ TARGET_1 }}` | target prodotto principale |
+| `{{ SALES_PROCESS }}` | come funziona il ciclo di vendita |
+| `{{ DELIVERY_PROCESS }}` | come erogano il servizio |
+| `{{ SUPPORT_PROCESS }}` | come gestiscono il supporto |
+| `{{ ONBOARDING_PROCESS }}` | come onboardano nuovi clienti |
+| `{{ TERM_1 }}` | primo termine tecnico interno |
+| `{{ DEFINITION_1 }}` | definizione primo termine |
+| `{{ SKILLS_LIST }}` | lista skill installate (generata dallo step 3) |
+| `{{ MCP_LIST }}` | lista connettori attivi (generata dallo step 5) |
+| `{{ COMPLIANCE_NOTES }}` | note compliance specifiche (GDPR, settore, ecc.) |
 | `{{ FOUNDER_CONTACT }}` | matteo@cervellodiferro.com |
 | `{{ TEAM_CHANNEL }}` | "Slack del cliente o WhatsApp Business" |
 | `{{ VAULT_NAME }}` | `<cliente-slug>-cervello` |
+| `{{ SETUP_DATE }}` | data setup (YYYY-MM-DD) |
 | `{{ SETUP_REPO_URL }}` | (sarà generato in step 7) |
 
 Usa `sed` per sostituire in massa:
